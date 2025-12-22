@@ -13,6 +13,7 @@ namespace BatchRecord.Infrastructure.Extensions
             services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddTransient(typeof(IQueryWrapper), typeof(DapperWrapper));
             services.AddTransient(typeof(ILogger<>), typeof(Logger<>));
+            services.AddTransient(typeof(IConversionPdfRepository), typeof(ConversionPdfRepository));
             // IDbConnection se registra en Program.cs para permitir selección dinámica por petición.
 
             return services;

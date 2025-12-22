@@ -10,6 +10,7 @@ using Prometheus;
 using Serilog;
 using System.Reflection;
 using System.Data;
+using System.Text;
 
 namespace BatchRecord.Api
 {
@@ -21,6 +22,8 @@ namespace BatchRecord.Api
         {
             WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
             ConfigurationManager config = builder.Configuration;
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
 
             builder.Services.AddCors(options =>
             {
