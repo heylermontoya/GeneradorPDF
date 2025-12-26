@@ -8,16 +8,13 @@
 
   <ItemGroup>
     <None Remove="Templates\RegistroBatch.html" />
-    <None Remove="Templates\TablaRegistro.html" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Templates\RegistroBatch.html" />
-    <EmbeddedResource Include="Templates\TablaRegistro.html" />
   </ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="HtmlRenderer.PdfSharp" Version="1.5.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.25" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Cosmos" Version="6.0.25" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.25" />
@@ -26,7 +23,6 @@
 		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
 		<PackageReference Include="Dapper" Version="2.1.24" />
-		<PackageReference Include="puppeteer-report" Version="3.0.3" />
 	</ItemGroup>
 
 	<ItemGroup>

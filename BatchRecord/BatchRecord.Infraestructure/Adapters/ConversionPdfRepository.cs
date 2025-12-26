@@ -1,112 +1,68 @@
 ﻿using BatchRecord.Domain.DTOs.ConversionPdf;
 using BatchRecord.Domain.Ports;
-using PdfSharp.Drawing;
-using PdfSharp.Pdf;
-// Reemplaza la línea:
-// var form = XForm.FromPdfPage(pdfTemp.Pages[0]);
-// por la siguiente:
-
-
-using TheArtOfDev.HtmlRenderer.PdfSharp;
+using PuppeteerReportCsharp;
+using PuppeteerSharp;
+using PuppeteerSharp.Media;
+using System.Text;
 
 namespace BatchRecord.Infraestructure.Adapters
 {
     public class ConversionPdfRepository : IConversionPdfRepository
     {
-        public Task<byte[]> GetPdfAsync(List<PaginaSeisDto> html)
+        public async Task<byte[]> GetPdfAsync(List<PaginaSeisDto> paginas)
         {
-            var pdf = new PdfDocument();
+            string templateHtml = CargarTemplate("BatchRecord.Infraestructure.Templates.RegistroBatch.html");
+            string content = GenerarTablaRegistro(paginas);
+            templateHtml = templateHtml.Replace("{{CONTENT}}", content.ToString());
 
-            for (int i = 0; i < html.Count; i++)
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions());
+            await using var page = await browser.NewPageAsync();
+            await page.SetContentAsync(templateHtml);
+
+            var pupeteer = new PuppeteerReport();
+            byte[] pdfBytes = await pupeteer.PDFPage(page, new PuppeteerSharp.PdfOptions
             {
-                try
+                Format = PaperFormat.A4,
+                PreferCSSPageSize = true,
+                MarginOptions = new MarginOptions
                 {
-
-                    var pagina = html[i];
-
-                    var tablaHtml = $@"
-                    <table>
-                        <tr>
-                            <td> <b>DESPEJE Incial</b></td>  <td>{pagina.DespejeInicial}</td>
-                        </tr>
-                        <tr><td>Número de Orden de producción anterior</td><td>{pagina.Fila2}</td></tr>
-                        <tr><td>Dotación, EPP´S de personal, utensilios completos y correctos</td><td>{pagina.Fila3}</td></tr>
-                        <tr><td>Se enceuntran el área y quipos/utensilios limpios</td><td>{pagina.Fila4}</td></tr>
-                        <tr><td>Existen materiales o documentación de productos anteriores</td><td>{pagina.Fila5}</td></tr>
-                        <tr><td>Se encuentra el área identificada de acuerdo al producto a realizar</td><td>{pagina.Fila6}</td></tr>
-                        <tr><td>El material y documentos del producto a realizar se encutnran en el área</td><td>{pagina.Fila7}</td></tr>
-                        <tr><td>Realizado por</td><td>{pagina.Fila8}</td></tr>
-                        <tr><td>Verificado por </td><td>{pagina.Fila9}</td></tr>
-                        <tr><td>Fecha: </td><td>{pagina.Fila10}</td></tr>
-                        <tr>
-                            <td> <b>DESPEJE Final</b></td>  <td>{pagina.DespejeFinal}</td>
-                        </tr>
-                        <tr><td>Se encuentran el área y los equipos/utensilios limpios</td><td>{pagina.Fila11}</td></tr>
-                        <tr><td>Existen materiales o documentación</td><td>{pagina.Fila12}</td></tr>
-                        <tr><td>El material y los productos se dejan adecuadamente identificados</td><td>{pagina.Fila13}</td></tr>
-                        <tr><td>Realizado Por</td><td>{pagina.Fila14}</td></tr>
-                        <tr><td>Verificado Por</td><td>{pagina.Fila15}</td></tr>
-                        <tr><td>Fecha</td><td>{pagina.Fila16}</td></tr>
-                        <tr>
-                            <td>D= dispensacion - F=Fabricación - E=Envase - A=Acondicionamiento
-                            <br/> Inspeccion Visual de Producto Terminado(Espacio exclusivo contol de calida)
-                            </td>
-                        </tr>
-                        <tr>
-                            <td> <b>Military STANDARD</b></td> <td>{pagina.MilitaryStandard}</td>
-                        </tr>
-                        <tr><td>STOCK PRODUCTO</td><td>{pagina.StockProducto}</td></tr>
-                        <tr><td>a) total unidades acondicionadas</td><td>{pagina.Fila17}</td></tr>
-                        <tr><td>b) Tamaño muestra</td><td>{pagina.Fila18}</td></tr>
-                        <tr><td>c) Total cajas corrugadas</td><td>{pagina.Fila19}</td></tr>
-                        <tr><td>d) Corrugados a revisar</td><td>{pagina.Fila20}</td></tr>
-                        <tr><td>e) Cantiad producto a revisar</td><td>{pagina.Fila21}</td></tr>
-                        <tr><td>Unidades no conformes </td><td>{pagina.Fila22}</td></tr>
-                        <tr><td>Defecto encontrado </td><td>{pagina.Fila23}</td></tr>
-                        <tr><td>Concepto </td><td>{pagina.Fila24}</td></tr>
-                        <tr><td>Realizado por </td><td>{pagina.Fila25}</td></tr>
-                        <tr><td>Observaciones </td><td>{pagina.Fila26}</td></tr>
-
-                    </table>
-                ";
-
-                    var htmlPagina = ConstruirHtmlPagina(tablaHtml);
-                    PdfGenerator.AddPdfPages(pdf, htmlPagina, PdfSharp.PageSize.A4);
+                    Top = "10mm",
+                    Bottom = "10mm",
+                    Left = "10mm",
+                    Right = "10mm"
                 }
-                catch (Exception e)
+            });
+
+            return pdfBytes;
+        }
+
+        private string CargarTemplate(string nombreRecurso)
+        {
+            var assembly = typeof(ConversionPdfRepository).Assembly;
+
+            var recursos = assembly.GetManifestResourceNames();
+
+            var stream = assembly.GetManifestResourceStream(nombreRecurso);
+
+            using var reader = new StreamReader(stream);
+            return reader.ReadToEnd();
+        }
+
+        private string GenerarTablaRegistro(List<PaginaSeisDto> paginas)
+        {
+            string tableHtml = CargarTemplate("BatchRecord.Infraestructure.Templates.TablaRegistro.html");
+
+            var tableBuilder = new StringBuilder();
+            for (int i = 0; i < paginas.Count(); i++)
+            {
+                tableBuilder.Append(tableHtml);
+                if (i < paginas.Count() - 1)
                 {
-                    var a = 0;
+                    tableBuilder.Append("<div class=\"page-break\"></div>");
                 }
             }
-
-            //PdfGenerator.AddPdfPages(pdf, html, PdfSharp.PageSize.A4);
-
-            using var ms = new MemoryStream();
-            pdf.Save(ms, false);
-            return Task.FromResult(ms.ToArray());
-
+            return tableBuilder.ToString();
         }
-
-        private string ConstruirHtmlPagina(string tablaHtml)
-        {
-            return $@"
-                <html>
-                <head>
-                    <style>
-                         body {{ font-family: Arial; font-size: 9px; margin: 15px; }}
-                        h1 {{ text-align: center; }}
-                        table {{ width: 100%; border-collapse: collapse; }}
-                        td {{ border: 1px solid black; padding: 6px; }}
-                    </style>
-                </head>
-                <body>
-                   
-                    {tablaHtml}
-                </body>
-                </html>
-            ";
-        }
-
-
     }
 }

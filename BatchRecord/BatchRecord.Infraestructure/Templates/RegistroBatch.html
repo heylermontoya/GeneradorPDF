@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        .contenedor-general {
+            width: 90%;
+            /* ancho completo del área imprimible */
+            margin: 0 auto;
+            /* centrado */
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            font-family: Arial, sans-serif;
+            font-size: 8px;
+            border: 1px solid black;
+            padding: 5px;
+            vertical-align: middle;
+            word-wrap: break-word;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .contenedor-tablas {
+            display: flex;
+            border-left: 1px solid black;
+            border-right: 1px solid black;
+            border-bottom: 1px solid black;
+            border-radius: 0 0 20px 20px;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .header {
+            border-left: 1px solid black;
+            border-right: 1px solid black;
+            border-top: 1px solid black;
+            border-radius: 20px 20px 0 0;
+            /* esquinas redondeadas */
+        }
+
+        .tabla-izquierda {
+            flex: 0 0 60%;
+            /* ancho fijo relativo al contenedor */
+        }
+
+        .tabla-derecha {
+            flex: 0 0 38%;
+            /* ancho fijo relativo al contenedor */
+        }
+    </style>
+</head>
+
+<body>
+    {{CONTENT}}
+</body>
+</html>
